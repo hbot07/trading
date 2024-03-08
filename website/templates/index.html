@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock RSI Signals</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Stock RSI Signals</h1>
+    <div class="container">
+        <div class="signals buy">
+            <h2>Buy</h2>
+            <ul id="buy"></ul>
+        </div>
+        <div class="signals sell">
+            <h2>Sell</h2>
+            <ul id="sell"></ul>
+        </div>
+        <div class="signals hold">
+            <h2>Hold</h2>
+            <ul id="hold"></ul>
+        </div>
+    </div>
+
+    <script>
+    async function fetchSignals() {
+        const response = await fetch('/signals');
+        const data = await response.json();
+        ['buy', 'sell', 'hold'].forEach(section => {
+            document.getElementById(section).innerHTML = ''; // Clear the section
+        });
+
+        for (const [stock, details] of Object.entries(data)) {
+            let stockElement = document.createElement('li');
+            stockElement.innerHTML = `
+                <strong>${stock}</strong><br>
+                Price: ${details.price}<br>
+                RSI: ${details.rsi}<br>
+                Signal: ${details.signal}`;
+            stockElement.addEventListener('click', function() {
+                this.classList.toggle('highlight');
+            });
+
+            // Depending on the signal, add to the corresponding section
+            if (details.signal) {
+                document.getElementById(details.signal.toLowerCase()).appendChild(stockElement);
+            }
+        }
+    }
+    fetchSignals();
+    setInterval(fetchSignals, 60000); // Refresh every minute
+    </script>
+
+</body>
+</html>
