@@ -38,7 +38,7 @@ def compute_rsi(data, window=14):
     avg_gain = gain.rolling(window, min_periods=1).mean()
     avg_loss = loss.rolling(window, min_periods=1).mean()
 
-    rs = avg_gain / avg_loss
+    rs = (avg_gain)/ avg_loss
     rsi = 100 - (100 / (1 + rs))
     return rsi
 
@@ -99,6 +99,9 @@ def index():
 @app.route('/signals')
 def signals():
     # This new endpoint is used to fetch the signals as JSON for the AJAX call in your HTML
+    for stock_data in stock_signals.values():
+        if pd.isna(stock_data['rsi']):
+            stock_data['rsi'] = "NaN"  # Convert NaN values to a string or null
     return jsonify(stock_signals)
 
 
@@ -107,8 +110,14 @@ lock = threading.Lock()
 
 if __name__ == "__main__":
     threads = []
-    top_by_volume = pd.read_csv('static/nifty100.csv')
+    top_by_volume = pd.read_csv('static/ind_nifty500list.csv')
     for stock in top_by_volume['Symbol']:
+        ticker = yf.Ticker(stock + ".NS")
+        todays_data = ticker.history(period='1m')
+        price_now = todays_data['Close'][0]
+        if price_now > 100:
+            continue
+        
         t = threading.Thread(target=rsi_alert, args=(stock + ".NS",))
         threads.append(t)
         t.start()

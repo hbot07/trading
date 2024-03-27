@@ -29,7 +29,6 @@
         ['buy', 'sell', 'hold'].forEach(section => {
             document.getElementById(section).innerHTML = ''; // Clear the section
         });
-
         for (const [stock, details] of Object.entries(data)) {
             let stockElement = document.createElement('li');
             stockElement.innerHTML = `
